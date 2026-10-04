@@ -5,13 +5,14 @@ import requests
 app = Flask(__name__)
 
 
-def fetch_labour_metric(dataset_code, params):
-    query_params = "&".join([f"{k}={v}" for k, v in params.items()])
-    url = f"https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/{dataset_code}?format=JSON&lang=EN&geo=EA21&{query_params}&sinceTimePeriod=2024"
+@app.route("/")
+def index():
+    url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?format=JSON&lang=EN&geo=EA21&unit=PC_ACT&s_adj=SA&age=TOTAL&sex=T&sinceTimePeriod=2026"
 
     labels = []
     values = []
     last_updated = "N/A"
+    error_msg = None
 
     try:
         response = requests.get(url, timeout=20)
@@ -29,36 +30,27 @@ def fetch_labour_metric(dataset_code, params):
         raw_values = data.get("value", {})
 
         for t in sorted_times:
-            idx = time_indices[t]
-            val = (
-                raw_values.get(str(idx))
-                if str(idx) in raw_values
-                else raw_values.get(idx)
-            )
-            if val is not None:
-                labels.append(t)
-                values.append(float(val))
+            if t.startswith("2026"):
+                idx = time_indices[t]
+                val = (
+                    raw_values.get(str(idx))
+                    if str(idx) in raw_values
+                    else raw_values.get(idx)
+                )
+                if val is not None:
+                    labels.append(t)
+                    values.append(float(val))
 
-        return labels, values, last_updated, None
     except Exception as e:
-        error_msg = f"Failed to fetch {dataset_code} ({query_params}): {e}"
+        error_msg = f"Failed to fetch Eurostat data: {e}"
         print(error_msg)
-        return [], [], "N/A", error_msg
-
-
-@app.route("/")
-def index():
-    # Harmonised Unemployment Rate (Monthly, Seasonally Adjusted)
-    labels_un, un_vals, updated_un, err_un = fetch_labour_metric(
-        "une_rt_m", {"unit": "PC_ACT", "s_adj": "SA", "age": "TOTAL", "sex": "T"}
-    )
 
     return render_template(
         "index.html",
-        labels=labels_un,
-        unemployment_values=un_vals,
-        error=err_un,
-        last_updated=updated_un,
+        labels=labels,
+        unemployment_values=values,
+        error=error_msg,
+        last_updated=last_updated,
     )
 
 

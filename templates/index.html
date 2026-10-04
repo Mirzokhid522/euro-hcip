@@ -17,7 +17,7 @@
         .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         .card { background: #1a1a1a; padding: 30px; border-radius: 10px; border: 1px solid #2a2a2a; box-shadow: 0 4px 25px rgba(0,0,0,0.9); }
         .card h3 { margin-top: 0; color: #fff; font-size: 1.25rem; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .chart-container { position: relative; height: 820px; width: 100%; } /* Further enlarged height */
+        .chart-container { position: relative; height: 450px; width: 100%; } /* Reduced to a more balanced height */
         .full-width { grid-column: 1 / -1; }
     </style>
 </head>
@@ -58,8 +58,8 @@
                         backgroundColor: '#1976d2',
                         borderColor: '#64b5f6',
                         borderWidth: 1.5,
-                        barPercentage: 0.9,
-                        categoryPercentage: 0.95,
+                        barPercentage: 0.82,
+                        categoryPercentage: 0.85,
                         order: 2
                     },
                     {
@@ -82,7 +82,7 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: {
-                        ticks: { color: '#ccc', maxTicksLimit: 14, font: { size: 12 } },
+                        ticks: { color: '#ccc', font: { size: 12 } },
                         grid: { color: 'rgba(255, 255, 255, 0.05)' }
                     },
                     y: {
