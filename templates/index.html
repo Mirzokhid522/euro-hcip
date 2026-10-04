@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euro Area (EA21) Labour Market Dashboard</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js DataLabels Plugin CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 30px; }
+        .container { max-width: 1450px; margin: auto; }
+        h1 { text-align: center; color: #ffffff; font-size: 1.8rem; margin-bottom: 5px; }
+        .subtitle { text-align: center; font-size: 0.9rem; color: #888; margin-bottom: 30px; }
+        .error-banner { background: #ff5252; color: #fff; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .card { background: #1a1a1a; padding: 30px; border-radius: 10px; border: 1px solid #2a2a2a; box-shadow: 0 4px 25px rgba(0,0,0,0.9); }
+        .card h3 { margin-top: 0; color: #fff; font-size: 1.25rem; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 820px; width: 100%; } /* Further enlarged height */
+        .full-width { grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Euro Area (EA21) Labour Market Dashboard</h1>
+        <div class="subtitle">Last Updated: {{ last_updated }} | Source: Eurostat API (une_rt_m)</div>
+
+        {% if error %}
+        <div class="error-banner">{{ error }}</div>
+        {% endif %}
+
+        <div class="grid">
+            <!-- Unemployment Rate Hybrid Chart -->
+            <div class="card full-width">
+                <h3>Harmonised Unemployment Rate (Seasonally Adjusted %)</h3>
+                <div class="chart-container">
+                    <canvas id="unemploymentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const labels = JSON.parse('{{ labels | tojson | safe }}');
+        const unemploymentValues = JSON.parse('{{ unemployment_values | tojson | safe }}');
+
+        const ctx = document.getElementById('unemploymentChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Unemployment Rate (%)',
+                        data: unemploymentValues,
+                        backgroundColor: '#1976d2',
+                        borderColor: '#64b5f6',
+                        borderWidth: 1.5,
+                        barPercentage: 0.9,
+                        categoryPercentage: 0.95,
+                        order: 2
+                    },
+                    {
+                        type: 'line',
+                        label: 'Trend Line',
+                        data: unemploymentValues,
+                        borderColor: '#00bcd4',
+                        backgroundColor: '#00bcd4',
+                        borderWidth: 3.5,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#00bcd4',
+                        fill: false,
+                        order: 1,
+                        datalabels: { display: false }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: { color: '#ccc', maxTicksLimit: 14, font: { size: 12 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    y: {
+                        min: 6.0,
+                        max: 6.7,
+                        ticks: { 
+                            color: '#ccc',
+                            font: { size: 12 },
+                            stepSize: 0.1,
+                            callback: function(value) { return value.toFixed(1) + '%'; }
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.08)' }
+                    }
+                },
+                plugins: {
+                    legend: { 
+                        display: true, 
+                        labels: { color: '#e0e0e0', boxWidth: 18, font: { size: 13 } } 
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#ffffff',
+                        font: { size: 11, weight: 'bold' },
+                        formatter: function(value) { return value !== null ? value + '%' : ''; }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            title: function(context) { return 'Period: ' + context[0].label; },
+                            label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; }
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    </script>
+</body>
+</html>
